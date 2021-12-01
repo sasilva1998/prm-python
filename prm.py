@@ -30,7 +30,7 @@ def main():
 
         pygame.display.update()
 
-        time.sleep(3)
+        # time.sleep(3)
 
         edges_connections, mod_nodes = graph.connect_nodes()
 
@@ -38,10 +38,10 @@ def main():
 
         pygame.display.update()
 
-        time.sleep(3)
+        # time.sleep(3)
 
         if graph.path_to_goal():
-            map.draw_path(graph.get_path_coords())
+            map.draw_path(graph.get_path_coords(), nodes)
 
         pygame.event.clear()
         pygame.event.wait(0)

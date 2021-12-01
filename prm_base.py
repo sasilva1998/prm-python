@@ -70,6 +70,32 @@ class PRMMap:
                 self.edge_thickness,
             )
 
+    def draw_path(self, path, nodes):
+
+        # TODO: finish pathing
+        pygame.draw.line(
+            self.map,
+            self.red_color,
+            (self.start[0], self.start[1]),
+            (nodes[path[0]].x, nodes[path[0]].y),
+            self.edge_thickness + 4,
+        )
+
+        for node in path:
+            pygame.draw.circle(self.map, self.red_color, node, self.node_rad + 5, 0)
+
+        try:
+            for i in range(0, len(path) - 1):
+                pygame.draw.line(
+                    self.map,
+                    self.red_color,
+                    (path[i][0], path[i][1]),
+                    (path[i + 1][0], path[i + 1][1]),
+                    self.edge_thickness + 4,
+                )
+        except Exception as e:
+            print(e)
+
 
 class PRMGraph:
     def __init__(self, start, goal, map_dimensions, obs_dim, obs_num, nodes_number):
@@ -227,7 +253,9 @@ class PRMGraph:
         distance = 1000000000000000000
         nearest_possible_node = None
         for node in self.nodes:
-            start_to_node = self.distance(self.start[0], self.start[1], node.x, node.y)
+            start_to_node = self.raw_distance(
+                self.start[0], self.start[1], node.x, node.y
+            )
             if start_to_node < distance and not self.cross_obstacle(
                 self.start[0], node.x, self.start[1], node.y
             ):
@@ -237,14 +265,57 @@ class PRMGraph:
             return False
         return nearest_possible_node
 
+    def get_path_coords(self):
+        return self.path
+
     def path_to_goal(self):
         start_node = self.start_node()
-        if start_node == None:
+        if isinstance(start_node, bool):
             return False
         self.path.append(start_node)
 
-        for i in range(0, self.nodes_number):
-            pass  # finish A* process to find path
+        n1 = self.nodes[self.path[-1]]
+
+        # initial_cost = self.raw_distance(n1.x, n1.y, self.goal[0], self.goal[1])
+
+        initial_cost = 10000000
+
+        search_flag = None
+
+        following_node = None
+
+        while search_flag == None:
+            # print("hasta aqui")
+            n1 = self.nodes[self.path[-1]]
+            # print(n1)
+            for connection in self.connections:
+                # print(connection)
+                if self.path[-1] in connection:
+                    if self.path[-1] == connection[0]:
+                        n2 = self.nodes[connection[1]]
+                    else:
+                        n2 = self.nodes[connection[0]]
+                    current_cost = self.raw_distance(
+                        n1.x, n1.y, n2.x, n2.y
+                    ) + self.raw_distance(n2.x, n2.y, self.goal[0], self.goal[1])
+                    if current_cost < initial_cost:
+                        initial_cost = current_cost
+                        following_node = n2.id
+            if following_node == self.path[-1]:
+                search_flag = False
+            elif following_node != None:
+                # print(following_node)
+                self.path.append(following_node)
+            # print("hasta aqui tambien")
+        last_node = self.nodes[self.path[-1]]
+        if not self.cross_obstacle(
+            self.goal[0], last_node.x, self.goal[1], last_node.y
+        ):
+            print("solution found")
+            print(self.path)
+            return True
+        print("no solution found")
+        return False
 
 
 class Node:
