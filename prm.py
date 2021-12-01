@@ -16,7 +16,7 @@ def main():
 
         pygame.init()
         map = PRMMap(start, goal, dimensions, obs_dim, obs_num)
-        graph = PRMGraph(start, goal, dimensions, obs_dim, obs_num, 10)
+        graph = PRMGraph(start, goal, dimensions, obs_dim, obs_num, 500)
 
         obstacles = graph.make_obs()
         nodes = graph.generate_nodes(obstacles)
@@ -29,6 +29,20 @@ def main():
         map.draw_map(obstacles, nodes)
 
         pygame.display.update()
+
+        time.sleep(3)
+
+        edges_connections, mod_nodes = graph.connect_nodes()
+
+        map.draw_connections(edges_connections, mod_nodes)
+
+        pygame.display.update()
+
+        time.sleep(3)
+
+        if graph.path_to_goal():
+            map.draw_path(graph.get_path_coords())
+
         pygame.event.clear()
         pygame.event.wait(0)
 

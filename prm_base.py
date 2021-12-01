@@ -49,8 +49,6 @@ class PRMMap:
 
     def draw_nodes(self, nodes):
         for node in nodes:
-            print(len(nodes))
-            print(node.free)
             if node.free:
                 pygame.draw.circle(
                     self.map, self.blue_color, (node.x, node.y), self.node_rad + 5, 0
@@ -60,6 +58,17 @@ class PRMMap:
                     self.map, self.red_color, (node.x, node.y), self.node_rad + 5, 0
                 )
         return True
+
+    def draw_connections(self, edges_connections, mod_nodes):
+        for edge_connection in edges_connections:
+            n1, n2 = edge_connection
+            pygame.draw.line(
+                self.map,
+                self.blue_color,
+                (mod_nodes[n1].x, mod_nodes[n1].y),
+                (mod_nodes[n2].x, mod_nodes[n2].y),
+                self.edge_thickness,
+            )
 
 
 class PRMGraph:
@@ -81,7 +90,40 @@ class PRMGraph:
         self.nodes_number = nodes_number
         self.nodes = []
 
-        self.neighbor = 30
+        self.connections = []
+
+        self.neighbor = 100
+
+        self.path = []
+
+    def connect_nodes(self):
+        for i in range(0, len(self.nodes)):
+            n1 = self.nodes[i]
+            for j in range(0, len(self.nodes)):
+                n2 = self.nodes[j]
+                if n1.id != n2.id:
+                    if self.distance(n1, n2) < self.neighbor:
+                        if (
+                            self.connections.count((n1.id, n2.id)) == 0
+                            and self.connections.count((n2.id, n1.id)) == 0
+                            and not self.cross_obstacle(n1.x, n2.x, n1.y, n2.y)
+                        ):
+                            self.connections.append((n1.id, n2.id))
+                        n1.add_connection(n2.id)
+            self.nodes[i] = n1
+        return self.connections, self.nodes
+
+    def cross_obstacle(self, _x1, _x2, _y1, _y2):
+        obs = self.obstacles.copy()
+        while len(obs) > 0:
+            rectang = obs.pop(0)
+            for i in range(0, 101):
+                _u = i / 100
+                _x = _x1 * _u + _x2 * (1 - _u)
+                _y = _y1 * _u + _y2 * (1 - _u)
+                if rectang.collidepoint(_x, _y):
+                    return True
+        return False
 
     def make_obs(self):
         obs = []
@@ -125,7 +167,6 @@ class PRMGraph:
                 self.nodes.append(Node(i, _x, _y, True))
             flag = 0
 
-        # print(len(self.nodes))
         return self.nodes
 
     def add_node(self, n, x, y):
@@ -149,8 +190,8 @@ class PRMGraph:
 
     def distance(self, n1, n2):
         """get distance between two nodes"""
-        (_x1, _y1) = (self.x[n1], self.y[n1])
-        (_x2, _y2) = (self.x[n2], self.y[n2])
+        (_x1, _y1) = (n1.x, n1.y)
+        (_x2, _y2) = (n2.x, n2.y)
 
         p_x = (float(_x1) - float(_x2)) ** 2
         p_y = (float(_y1) - float(_y2)) ** 2
@@ -176,6 +217,35 @@ class PRMGraph:
                 nnear = i
         return nnear
 
+    def raw_distance(self, _x1, _y1, _x2, _y2):
+        """get distance between two nodes"""
+        p_x = (float(_x1) - float(_x2)) ** 2
+        p_y = (float(_y1) - float(_y2)) ** 2
+        return (p_x + p_y) ** (0.5)
+
+    def start_node(self):
+        distance = 1000000000000000000
+        nearest_possible_node = None
+        for node in self.nodes:
+            start_to_node = self.distance(self.start[0], self.start[1], node.x, node.y)
+            if start_to_node < distance and not self.cross_obstacle(
+                self.start[0], node.x, self.start[1], node.y
+            ):
+                distance = start_to_node
+                nearest_possible_node = node.id
+        if nearest_possible_node == None:
+            return False
+        return nearest_possible_node
+
+    def path_to_goal(self):
+        start_node = self.start_node()
+        if start_node == None:
+            return False
+        self.path.append(start_node)
+
+        for i in range(0, self.nodes_number):
+            pass  # finish A* process to find path
+
 
 class Node:
     def __init__(self, id, x, y, free_point):
@@ -187,3 +257,6 @@ class Node:
 
     def set_free(self, val):
         self.free = val
+
+    def add_connection(self, val):
+        self.connections.add(val)
