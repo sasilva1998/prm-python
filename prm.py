@@ -11,26 +11,15 @@ def main():
         obs_dim = 50
         obs_num = 50
 
-        iteration = 0
-        t1 = time.time()
-
         pygame.init()
         map = PRMMap(start, goal, dimensions, obs_dim, obs_num)
-        graph = PRMGraph(start, goal, dimensions, obs_dim, obs_num, 500)
+        graph = PRMGraph(start, goal, dimensions, obs_dim, obs_num, 1000)
 
         obstacles = graph.make_obs()
         nodes = graph.generate_nodes(obstacles)
-        # map.map.fill((map.white_color))
-
-        # elapsed = time.time() - t1
-        # t1 = time.time()
-        # if elapsed > 10:
-        #     raise ("timed up")
         map.draw_map(obstacles, nodes)
 
         pygame.display.update()
-
-        # time.sleep(3)
 
         edges_connections, mod_nodes = graph.connect_nodes()
 
@@ -38,15 +27,13 @@ def main():
 
         pygame.display.update()
 
-        # time.sleep(3)
-
         if graph.path_to_goal():
-            map.draw_path(graph.get_path_coords(), nodes)
+            map.draw_path(graph.get_path_coords(), mod_nodes)
+
+        pygame.display.update()
 
         pygame.event.clear()
         pygame.event.wait(0)
-
-        # pygame.display.update()
 
     except Exception as e:
         print(e)

@@ -1,5 +1,8 @@
 import pygame
 import random
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class PRMMap:
@@ -72,7 +75,6 @@ class PRMMap:
 
     def draw_path(self, path, nodes):
 
-        # TODO: finish pathing
         pygame.draw.line(
             self.map,
             self.red_color,
@@ -81,20 +83,22 @@ class PRMMap:
             self.edge_thickness + 4,
         )
 
-        for node in path:
-            pygame.draw.circle(self.map, self.red_color, node, self.node_rad + 5, 0)
+        for i in range(0, len(path) - 1):
+            pygame.draw.line(
+                self.map,
+                self.red_color,
+                (nodes[path[i]].x, nodes[path[i]].y),
+                (nodes[path[i + 1]].x, nodes[path[i + 1]].y),
+                self.edge_thickness + 4,
+            )
 
-        try:
-            for i in range(0, len(path) - 1):
-                pygame.draw.line(
-                    self.map,
-                    self.red_color,
-                    (path[i][0], path[i][1]),
-                    (path[i + 1][0], path[i + 1][1]),
-                    self.edge_thickness + 4,
-                )
-        except Exception as e:
-            print(e)
+        pygame.draw.line(
+            self.map,
+            self.red_color,
+            (nodes[path[-1]].x, nodes[path[-1]].y),
+            (self.goal[0], self.goal[1]),
+            self.edge_thickness + 4,
+        )
 
 
 class PRMGraph:
@@ -285,11 +289,8 @@ class PRMGraph:
         following_node = None
 
         while search_flag == None:
-            # print("hasta aqui")
             n1 = self.nodes[self.path[-1]]
-            # print(n1)
             for connection in self.connections:
-                # print(connection)
                 if self.path[-1] in connection:
                     if self.path[-1] == connection[0]:
                         n2 = self.nodes[connection[1]]
@@ -304,17 +305,13 @@ class PRMGraph:
             if following_node == self.path[-1]:
                 search_flag = False
             elif following_node != None:
-                # print(following_node)
                 self.path.append(following_node)
-            # print("hasta aqui tambien")
         last_node = self.nodes[self.path[-1]]
         if not self.cross_obstacle(
             self.goal[0], last_node.x, self.goal[1], last_node.y
         ):
-            print("solution found")
-            print(self.path)
             return True
-        print("no solution found")
+        logging.info("No solution found.")
         return False
 
 
