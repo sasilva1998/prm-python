@@ -122,7 +122,7 @@ class PRMGraph:
 
         self.connections = []
 
-        self.neighbor = 100
+        self.neighbor = 200
 
         self.path = []
 
@@ -282,13 +282,12 @@ class PRMGraph:
 
         # initial_cost = self.raw_distance(n1.x, n1.y, self.goal[0], self.goal[1])
 
-        initial_cost = 10000000
+        initial_cost = 10000
 
         search_flag = None
 
-        following_node = None
-
         while search_flag == None:
+            initial_cost = 10000
             n1 = self.nodes[self.path[-1]]
             for connection in self.connections:
                 if self.path[-1] in connection:
@@ -296,21 +295,30 @@ class PRMGraph:
                         n2 = self.nodes[connection[1]]
                     else:
                         n2 = self.nodes[connection[0]]
+                    try:
+                        if n2.id in self.path:
+                            # print("the same")
+                            continue
+                    except:
+                        pass
                     current_cost = self.raw_distance(
                         n1.x, n1.y, n2.x, n2.y
                     ) + self.raw_distance(n2.x, n2.y, self.goal[0], self.goal[1])
                     if current_cost < initial_cost:
                         initial_cost = current_cost
                         following_node = n2.id
+                # print(self.path)
             if following_node == self.path[-1]:
                 search_flag = False
+                # continue
             elif following_node != None:
                 self.path.append(following_node)
-        last_node = self.nodes[self.path[-1]]
-        if not self.cross_obstacle(
-            self.goal[0], last_node.x, self.goal[1], last_node.y
-        ):
-            return True
+            last_node = self.nodes[self.path[-1]]
+            if not self.cross_obstacle(
+                self.goal[0], last_node.x, self.goal[1], last_node.y
+            ):
+                return True
+        return True
         logging.info("No solution found.")
         return False
 

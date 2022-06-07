@@ -13,7 +13,7 @@ def main():
 
         pygame.init()
         map = PRMMap(start, goal, dimensions, obs_dim, obs_num)
-        graph = PRMGraph(start, goal, dimensions, obs_dim, obs_num, 1000)
+        graph = PRMGraph(start, goal, dimensions, obs_dim, obs_num, 200)
 
         obstacles = graph.make_obs()
         nodes = graph.generate_nodes(obstacles)
